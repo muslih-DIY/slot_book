@@ -1,7 +1,7 @@
 
 from typing import List,Dict,Any
 from datetime import datetime,timedelta,time,date
-from .slots import MarkedJOb,Container,ObdCampaign,Containerjob,highest_multiple
+from .slots import Job,Container,ObdCampaign,Worker
 from .settings import PARAMETERS
 
 
@@ -17,11 +17,11 @@ def init_schedule(schedule_date=None):
 
     return {schedule_date:{
         PARAMETERS.START_TIME+i:{
-            cid:Containerjob(c) for cid,c in containers.items()}
+            cid:Worker(PARAMETERS.START_TIME+i,schedule_date,c) for cid,c in containers.items()}
         for i in range(PARAMETERS.MAIN_SLOT_NO)}
         }
 
-def print_schedule(schedule:dict[date | Any, dict[int, dict[str, Containerjob]]]):
+def print_schedule(schedule:dict[date | Any, dict[int, dict[str, Worker]]]):
     "print schedule"
     line = '--'*50+'\n'
     for day in schedule:
@@ -44,10 +44,10 @@ def print_schedule(schedule:dict[date | Any, dict[int, dict[str, Containerjob]]]
             tab = '\t\t'                                   
     print(line)                
 
-def load_schedule_data(schedule_date=None,jobs:List[MarkedJOb]=None):
+def load_schedule_data(schedule_date=None,jobs:List[Job]=None):
     "Load the scheduled data from database to schedule variable"
     if not jobs:
-        jobs:List[MarkedJOb] = get_schedule_details(schedule_date)
+        jobs:List[Job] = get_schedule_details(schedule_date)
 
     
     schedules = init_schedule()
@@ -72,7 +72,10 @@ def available_slots(schedule_date=None):
             slot_capacity[slot]+=Cont.available
 
     return slot_capacity
-            
+
+def get_available_slots(schedule:dict):
+    free_slot = lambda workers:sum([worker.available for c,worker in workers.items()])
+    return {day:{slot:free_slot(workers) for slot,workers in slots.items()} for day,slots in schedule.items() }            
     
 def get_campaign(obd_id:str)->ObdCampaign:
     "collect the campaign details from database"
@@ -98,19 +101,19 @@ def get_dummy_schedule_data():
     "dummy_data_create locally"
     containers = get_container_data()
     return [
-            MarkedJOb(
+            Job(
                 8,
                 date.today(),
                 time(8,30,0),
                 time(9,0,0),
                 containers['C1'],get_campaign('OBCMP1'),1,3000),
-            MarkedJOb(
+            Job(
                 8,
                 date.today(),
                 time(8,15,0),
                 time(8,30,0),
                 containers['C1'],get_campaign('OBCMP2'),1,5000),
-            MarkedJOb(
+            Job(
                 10,
                 date.today(),
                 time(10,0,0),
