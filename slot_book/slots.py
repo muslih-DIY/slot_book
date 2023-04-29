@@ -1,5 +1,5 @@
 from datetime import datetime,date,time
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 
 @dataclass
 class Container:
@@ -28,8 +28,8 @@ class MarkedJOb:
     date:date
     start_time:time
     end_time:time
-    container:str
-    job:str
+    container:Container
+    job:ObdCampaign
     start_record:int
     end_record:int
     
@@ -47,3 +47,30 @@ class MarkedJOb:
 
     def __repr__(self) -> str:
         return self.__str__()
+
+def highest_multiple(number:int,ref:int):
+    "return highest multiplier of reference above number"
+    q,mod = divmod(number,ref)
+    if mod!=0: return (q+1)*ref
+    return number
+
+
+    
+@dataclass
+class Containerjob:
+    cont:Container
+    jobs:list[MarkedJOb] = field(default_factory=list)
+    available:int = 0
+    
+    def __post_init__(self):
+        
+        self.available = self.cont.call_rate
+    
+
+    def add_jobs(self,job:MarkedJOb,no_sub_slot:int):
+        self.jobs.append(job)
+        self.available -= int(highest_multiple(job.effective_size,self.cont.call_rate/no_sub_slot))
+
+
+
+    

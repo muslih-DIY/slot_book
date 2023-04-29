@@ -1,22 +1,10 @@
 
-# day 
-#  slot1<start-time>
-#    Markedslots1 :start-time,end_time<start-time+SUB_SLOT_UNIT>
-#    Markedslots1 :start-time,end_time<start-time+SUB_SLOT_UNIT>
-#  slot2<start-time+MAIN_SLOT_UNIT>
-
-#  slot3<start-time+(3-1)MAIN_SLOT_UNIT>
 from typing import List,Dict,Any
 from datetime import datetime,timedelta,time,date
-from slots import MarkedJOb,Container,ObdCampaign
-from settings import PARAMETERS
+from .slots import MarkedJOb,Container,ObdCampaign,Containerjob,highest_multiple
+from .settings import PARAMETERS
 
 
-def highest_multiple(number,ref):
-    "return highest multiplier of reference above number"
-    q,mod = divmod(number,ref)
-    if mod!=0: return (q+1)*ref
-    return number
 
 
 
@@ -29,11 +17,11 @@ def init_schedule(schedule_date=None):
 
     return {schedule_date:{
         PARAMETERS.START_TIME+i:{
-            c:[] for c in containers}
+            cid:Containerjob(c) for cid,c in containers.items()}
         for i in range(PARAMETERS.MAIN_SLOT_NO)}
         }
 
-def print_schedule(schedule):
+def print_schedule(schedule:dict[date | Any, dict[int, dict[str, Containerjob]]]):
     "print schedule"
     line = '--'*50+'\n'
     for day in schedule:
@@ -43,10 +31,11 @@ def print_schedule(schedule):
             line +=f"{tab}{slot}\t"
             tab = '\t'
             for cont in schedule[day].get(slot):
-                line +=f"{tab}{cont}\t"
-                tab='\t'
-                for job in schedule[day][slot].get(cont):
-                    line +=f"{tab}{job}\t\n"
+                cjobs = schedule[day][slot][cont]
+                line +=f"{tab}{cont}:[FREE:{cjobs.available}]\n"
+                tab='\t\t\t\t\t\t'
+                for cjob in cjobs.jobs:
+                    line +=f"{tab}{cjob}\t\n"
                     tab = '\t\t\t\t\t\t'
                 
                 tab = '\t\t\t\t'
@@ -61,9 +50,12 @@ def load_schedule_data(schedule_date=None,jobs:List[MarkedJOb]=None):
         jobs:List[MarkedJOb] = get_schedule_details(schedule_date)
 
     
-    schedules:dict[date | Any, dict[int, dict[str, List[MarkedJOb]]]] = init_schedule()
+    schedules = init_schedule()
     for job in jobs:        
-        schedules[job.date][job.slot][job.container.id].append(job)
+        # schedules[job.date][job.slot][job.container.id].append(job)
+        containerjobs = schedules[job.date][job.slot][job.container.id]
+        containerjobs.add_jobs(job,PARAMETERS.SUB_SLOT_NO)
+
     
     return schedules
 
@@ -76,15 +68,11 @@ def available_slots(schedule_date=None):
     slot_capacity = {}
     for slot,conts in slots.items():
         slot_capacity[slot] = 0
-        for cont_id,jobs in conts.items():
-            C = containers.get(cont_id)
-            slot_capacity[slot]+=C.call_rate
-            sub_slot_call_rate = C.call_rate/PARAMETERS.SUB_SLOT_NO
-            for job in jobs:
-                slot_capacity[slot]-= highest_multiple(job.effective_size,sub_slot_call_rate)
+        for cont_id,Cont in conts.items():
+            slot_capacity[slot]+=Cont.available
+
     return slot_capacity
             
-
     
 def get_campaign(obd_id:str)->ObdCampaign:
     "collect the campaign details from database"
@@ -115,13 +103,13 @@ def get_dummy_schedule_data():
                 date.today(),
                 time(8,30,0),
                 time(9,0,0),
-                containers['C1'],get_campaign('OBCMP1'),1,2000),
+                containers['C1'],get_campaign('OBCMP1'),1,3000),
             MarkedJOb(
                 8,
                 date.today(),
                 time(8,15,0),
                 time(8,30,0),
-                containers['C1'],get_campaign('OBCMP2'),1,10000),
+                containers['C1'],get_campaign('OBCMP2'),1,5000),
             MarkedJOb(
                 10,
                 date.today(),
