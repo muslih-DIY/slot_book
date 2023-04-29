@@ -1,0 +1,14 @@
+{
+    "500":{"id":"OBCP3","cap":500,"job_type":0,"service_type":0,"retry_count":0},
+    "2k":{"id":"OBCP4","cap":2000,"job_type":0,"service_type":0,"retry_count":0},
+    "10k":{"id":"OBCP5","cap":10000,"job_type":0,"service_type":0,"retry_count":0},
+    "25k":{"id":"OBCP6","cap":25000,"job_type":0,"service_type":0,"retry_count":0},
+    "30k":{"id":"OBCP1","cap":30000,"job_type":0,"service_type":0,"retry_count":0},
+    "50k":{"id":"OBCP7","cap":50000,"job_type":0,"service_type":0,"retry_count":0},
+    "60k":{"id":"OBCP2","cap":60000,"job_type":0,"service_type":0,"retry_count":0},
+    "100k":{"id":"OBCP8","cap":100000,"job_type":0,"service_type":0,"retry_count":0},
+    "250k":{"id":"OBCP9","cap":250000,"job_type":0,"service_type":0,"retry_count":0},
+    "300k":{"id":"OBCP10","cap":300000,"job_type":0,"service_type":0,"retry_count":0},
+    "1000k":{"id":"OBCP11","cap":1000000,"job_type":0,"service_type":0,"retry_count":0},
+    "3000k":{"id":"OBCP12","cap":3000000,"job_type":0,"service_type":0,"retry_count":0}
+ }

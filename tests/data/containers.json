@@ -1,0 +1,16 @@
+{
+    "Single_Container":[
+        {"id":"C1","cap":10000}
+    ],
+
+    "Two_Containers":[
+        {"id":"C1","cap":10000},
+        {"id":"C2","cap":10000}
+    ],
+     
+    "Three_Containers":[
+        {"id":"C1","cap":10000},
+        {"id":"C2","cap":10000},
+        {"id":"C3","cap":10000}
+    ]    
+ }
