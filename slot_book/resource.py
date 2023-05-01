@@ -62,9 +62,8 @@ def load_schedule_data(schedule_date=None,jobs:List[Job]=None):
 def available_slots(schedule_date=None):
     if not schedule_date :
         schedule_date = datetime.today().date()
-    schedules = load_schedule_data(schedule_date)           
+    schedules = load_schedule_data(schedule_date)
     slots = schedules.get(schedule_date)
-    containers = get_container_data()
     slot_capacity = {}
     for slot,conts in slots.items():
         slot_capacity[slot] = 0
@@ -90,7 +89,7 @@ def get_container_data():
 
 def get_dummy_container_data():
     "dummy_data create locally"
-    return {'C1':Container('C1',10000),'C2':Container('C2',10000)}
+    return {'C1':Container('C1',10000,PARAMETERS.SUB_SLOT_NO),'C2':Container('C2',10000,PARAMETERS.SUB_SLOT_NO)}
 def get_schedule_details(schedule_date=None):
     "collect data from database"
     if not schedule_date :

@@ -14,17 +14,23 @@ class Schedule_Algo:
 
     @classmethod
     def vertical_fill(cls,Workers:List[Worker],Campaign:ObdCampaign,marked_task:int=0):
-        
-        if marked_task>=Campaign.size:return marked_task
-        worker = Choose_Worker(Workers)
-        if worker.available < worker.cont.sub_slot_call_rate: return marked_task
+        if marked_task>=Campaign.size:
+            # all the task(call) are marked
+            return marked_task
+        worker = Choose_Worker(Workers) # choose larger capacity worker(container)
+        available_cap = int(worker.available*Campaign.capacity_diminish_ratio)
+        sub_slot_cap = int(worker.cont.sub_slot_call_rate*Campaign.capacity_diminish_ratio)
+        print(available_cap,sub_slot_cap)
+        if available_cap < sub_slot_cap:
+            #The Slot capacity is filled collect next slot
+            return marked_task
         start_record = marked_task+1
-        tasks = worker.available
+        tasks = available_cap
         balance_task = Campaign.size - marked_task
-        if balance_task<worker.available:
+        if balance_task<available_cap:
             tasks = balance_task
         end_record =  start_record+tasks-1            
-        dt = timedelta(minutes=int(highest_multiple(tasks,worker.cont.sub_slot_call_rate)/worker.cont.sub_slot_call_rate)*60*PARAMETERS.SUB_SLOT_UNIT)
+        dt = timedelta(minutes=int(highest_multiple(tasks,sub_slot_cap)/sub_slot_cap)*60*PARAMETERS.SUB_SLOT_UNIT)
         
         end_time = (datetime.combine(worker.date,worker.end_time)+dt).time()
         
