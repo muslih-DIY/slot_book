@@ -4,15 +4,15 @@ from dataclasses import dataclass,field
 
 
 class PARAMETERS:
-        MARGIN_BETWEEN = 3 # minutes
-        START_TIME = 8  # 24 hr scale
-        END_TIME = 20   # 24 hr scale
-        MAIN_SLOT_UNIT = 1 # hr
-        SUB_SLOT_UNIT = 1/4  # hr
-        MAIN_SLOT_NO = int((END_TIME - START_TIME)/MAIN_SLOT_UNIT)
-        SUB_SLOT_NO  = int(MAIN_SLOT_UNIT/SUB_SLOT_UNIT )
-        RETRY_BOOST = 70/100
-        SURVEY_BOOST = 30/100
+    MARGIN_BETWEEN = 3 # minutes
+    START_TIME = 8  # 24 hr scale
+    END_TIME = 20   # 24 hr scale
+    MAIN_SLOT_UNIT = 1 # hr
+    SUB_SLOT_UNIT = 1/4  # hr
+    MAIN_SLOT_NO = int((END_TIME - START_TIME)/MAIN_SLOT_UNIT)
+    SUB_SLOT_NO  = int(MAIN_SLOT_UNIT/SUB_SLOT_UNIT )
+    RETRY_BOOST = 70/100
+    SURVEY_BOOST = 30/100
 
 
 
@@ -36,7 +36,7 @@ class ObdCampaign:
     job_type:int     = 0  # service campaign,commercial
     service_type:int = 0 # simple announcement , survey
     retry_count:int  = 0
-    answering_perc:int  = 30/100
+    answering_perc:int  = 60/100
     survey_drop:int = 30/100 # expecting 30% drop in the call speed
 
     def __post_init__(self):
@@ -50,17 +50,17 @@ class ObdCampaign:
             
             sd = expected reduction in capacity due to survey
             
-            enhance_size = [[(1-r)^n]/(1-r)]*1/(1-sd)
+            enhance_size = [[(1-r^n)]/(1-r)]*1/(1-sd)
 
-            diminish_capacity = [(1-r)/(1-r)^n]*(1-sd)
+            diminish_capacity = [(1-r)/(1-r^n)]*(1-sd)
 
         """
         r = 1-self.answering_perc
         sd = self.survey_drop if self.service_type!=0 else 0
         n = self.retry_count+1
-        print("n :",n)
-        self.capacity_diminish_ratio = (((1-r)**n)/(1-r))/(1-sd)
-        self.size_enhancement_ratio = ((1-r)/(1-r)**n)*(1-sd)
+        self.size_enhancement_ratio = round((1-r**n)/(1-r)/(1-sd),3)
+        self.capacity_diminish_ratio = round(1/self.size_enhancement_ratio,3)
+
         
 
 @dataclass
@@ -80,11 +80,11 @@ class Job:
     
     @property
     def effective_size(self):
-        return self.size
+        return self.size*self.Campaigns.size_enhancement_ratio
 
 
     def __str__(self) -> str:
-        return f"{self.Campaigns.id}({self.effective_size})@{self.start_time}-{self.end_time}"
+        return f"{self.Campaigns.id}({int(self.effective_size)}[{self.size}])@{self.start_time}-{self.end_time}"
 
     def __repr__(self) -> str:
         return self.__str__()
